@@ -141,7 +141,7 @@ body::after {
         var(--stone-white) 30%,
         var(--marble-grey) 70%,
         var(--warm-mist) 100%);
-    backdrop-filter: blur(15px);
+    /* backdrop-filter: blur(15px); */
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 24px;
     padding: 40px;
@@ -208,7 +208,7 @@ body::after {
         var(--pearl-white) 0%, 
         var(--warm-mist) 40%,
         var(--marble-grey) 100%);
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); */
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
     padding: 32px;
@@ -338,7 +338,7 @@ body::after {
     box-shadow: 
         0 10px 20px rgba(71, 85, 105, 0.03),
         inset 0 1px 0 rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); */
     position: relative;
     overflow: hidden;
     will-change: transform;
@@ -398,7 +398,7 @@ body::after {
     background: linear-gradient(135deg, 
         var(--pearl-white) 0%, 
         var(--stone-white) 100%);
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); */
     box-shadow: 
         0 10px 20px rgba(71, 85, 105, 0.02),
         inset 0 1px 0 rgba(255, 255, 255, 0.5);
@@ -445,7 +445,7 @@ body::after {
     background: linear-gradient(135deg, 
         var(--pearl-white) 0%, 
         var(--stone-white) 100%);
-    backdrop-filter: blur(8px);
+    /* backdrop-filter: blur(8px); */
     color: rgba(71, 85, 105, 0.9);
     transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
     will-change: transform;
@@ -475,7 +475,7 @@ body::after {
     box-shadow: 
         0 8px 16px rgba(71, 85, 105, 0.02),
         inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(8px);
+    /* backdrop-filter: blur(8px); */
     position: relative;
     overflow: hidden;
 }
@@ -517,7 +517,7 @@ body::after {
     padding: 32px;
     border-radius: 16px;
     margin-bottom: 30px;
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); */
     box-shadow: 
         0 12px 24px rgba(71, 85, 105, 0.02),
         inset 0 1px 0 rgba(255, 255, 255, 0.5);
@@ -535,7 +535,7 @@ body::after {
     justify-content: space-between;
     align-items: center;
     border: 1px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(5px);
+    /* backdrop-filter: blur(5px); */
 }
 
 .note-content {
@@ -613,7 +613,7 @@ body::after {
     padding: 32px;
     border-radius: 20px;
     text-align: center;
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); */
     border: 1px solid rgba(255, 255, 255, 0.4);
     box-shadow: 
         0 12px 24px rgba(71, 85, 105, 0.02),
@@ -674,7 +674,7 @@ body::after {
     background: linear-gradient(135deg, 
         var(--pearl-white) 0%, 
         var(--stone-white) 100%);
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); */
     border-radius: 18px;
     padding: 32px;
     margin-bottom: 25px;
