@@ -39,6 +39,7 @@ def add_penpal():
 
 @app.route('/add_letter', methods=['POST'])
 def add_letter():
+    print("=== /add_letter called ===")
     penpal_name = request.form['penpal_name']
     content = request.form['content']
     date_received = request.form['date_received']
