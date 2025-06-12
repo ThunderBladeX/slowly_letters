@@ -4,10 +4,21 @@ import os
 
 try:
     from vercel_kv import kv
-    KV_AVAILABLE = True
 except ImportError:
-    KV_AVAILABLE = False
-    print("Vercel KV not available - using local file storage")
+    try:
+        import vercel_kv
+        kv = vercel_kv.kv
+    except ImportError:
+        try:
+            from vercel_kv.sync import KV
+            # You'll need to set these environment variables in Vercel
+            kv = KV(
+                url=os.getenv('KV_REST_API_URL'),
+                token=os.getenv('KV_REST_API_TOKEN')
+            )
+        except ImportError:
+            print("Warning: Vercel KV not available, using fallback storage")
+            kv = None
 
 class LetterManager:
     def __init__(self, kv_key='letters_data_store'):
