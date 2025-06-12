@@ -11,7 +11,6 @@ except ImportError:
     except ImportError:
         try:
             from vercel_kv.sync import KV
-            # You'll need to set these environment variables in Vercel
             kv = KV(
                 url=os.getenv('KV_REST_API_URL'),
                 token=os.getenv('KV_REST_API_TOKEN')
@@ -27,17 +26,43 @@ class LetterManager:
     
     def load_data(self):
         """Load data from Vercel KV or create empty structure"""
-        raw_data = kv.get(self.kv_key)
-        if raw_data:
-            try:
-                return json.loads(raw_data) if isinstance(raw_data, str) else raw_data
-            except json.JSONDecodeError:
-                return {"penpals": {}}
+        if not kv:
+            return self.load_from_file()
+        try:
+            raw_data = kv.get(self.kv_key)
+            if raw_data:
+                try:
+                    return json.loads(raw_data) if isinstance(raw_data, str) else raw_data
+                except json.JSONDecodeError:
+                    return {"penpals": {}}
+            return {"penpals": {}}
+        except Exception as e:
+            print(f"Error loading from KV: {e}")
+            return self.load_from_file()
+
+    def load_from_file(self):
+        """Fallback file-based storage"""
+        try:
+            if os.path.exists('letters_data.json'):
+                with open('letters_data.json', 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"Error loading from file: {e}")
         return {"penpals": {}}
     
     def save_data(self):
-        """Save data to Vercel KV"""
-        kv.set(self.kv_key, self.data)
+        """Save data to Vercel KV or file"""
+        if kv:
+            try:
+                kv.set(self.kv_key, self.data)
+                return
+            except Exception as e:
+                print(f"Error saving to KV: {e}")
+        try:
+            with open('letters_data.json', 'w') as f:
+                json.dump(self.data, f, indent=2)
+        except Exception as e:
+            print(f"Error saving to file: {e}")
     
     def add_penpal(self, name, country):
         """Add a new penpal"""
