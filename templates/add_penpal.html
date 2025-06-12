@@ -3,36 +3,47 @@
 {% block title %}Add New Pen Pal - Slowly Letters Organizer{% endblock %}
 
 {% block content %}
-    <a href="{{ url_for('index') }}" class="back-link">← Return to all pen pals</a>
+    <a href="{{ url_for('index') }}" class="back-link" style="font-size: 1rem;">← Return to all pen pals</a>
     
     <div class="card">
-        <h2 style="margin-bottom: 15px; color: #5a5a5a; font-weight: 400;">Add New Pen Pal</h2>
-        <p style="color: #8a8a8a; margin-bottom: 30px; font-weight: 300; line-height: 1.6;">Create a space for a new friendship to flourish through letters and shared memories.</p>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 400; color: rgba(71, 85, 105, 0.95); margin-bottom: 10px;">Add New Pen Pal</h2>
+        <p style="color: rgba(100, 116, 139, 0.8); margin-bottom: 30px; font-weight: 300; line-height: 1.6; font-size: 1.05rem;">
+            Create a dedicated space for a new friendship. Once added, you can begin archiving letters and notes.
+        </p>
         
         <form method="POST">
             <div class="form-group">
                 <label for="name">Pen Pal Name:</label>
-                <input type="text" id="name" name="name" required placeholder="The name they'd like to be called">
+                <input type="text" id="name" name="name" required placeholder="The name they go by">
             </div>
             
             <div class="form-group">
                 <label for="country">Country:</label>
-                <input type="text" id="country" name="country" required placeholder="Where in the world they call home">
+                <input type="text" id="country" name="country" required placeholder="Where in the world they are writing from">
             </div>
             
             <div style="display: flex; gap: 20px; margin-top: 35px;">
-                <button type="submit" class="btn">Create Pen Pal</button>
+                <button type="submit" class="btn">Create Pen Pal Profile</button>
                 <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 
-    <div class="card" style="background: linear-gradient(135deg, rgba(255, 248, 220, 0.7) 0%, rgba(255, 255, 255, 0.6) 100%); border-left: 3px solid rgba(255, 215, 0, 0.4);">
-        <h3 style="color: #5a5a5a; margin-bottom: 20px; font-weight: 400;">Getting Started</h3>
-        <div style="color: #7a7a7a; line-height: 1.7; font-weight: 300;">
-            <p style="margin-bottom: 12px;">• Use the name your pen pal prefers in their letters</p>
-            <p style="margin-bottom: 12px;">• Letters and notes can be added once you create their profile</p>
-            <p>• Everything is saved automatically as you build your collection</p>
-        </div>
+    <div class="card" style="background: linear-gradient(135deg, var(--warm-mist) 0%, var(--pearl-white) 70%); border-left: 4px solid var(--pale-gold); padding: 30px;">
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 400; color: rgba(71, 85, 105, 0.9); margin-bottom: 18px;">Getting Started Tips</h3>
+        <ul style="color: rgba(81, 95, 115, 0.85); line-height: 1.7; font-weight: 300; font-size: 0.95rem; list-style: none; padding-left: 0;">
+            <li style="margin-bottom: 12px; padding-left: 25px; position: relative;">
+                <span style="position: absolute; left: 0; color: var(--pale-gold); filter: drop-shadow(0 0 3px rgba(255, 248, 220, 0.4)); font-size: 1.2em;">•</span>
+                Use the name your pen pal prefers in their letters.
+            </li>
+            <li style="margin-bottom: 12px; padding-left: 25px; position: relative;">
+                <span style="position: absolute; left: 0; color: var(--pale-gold); filter: drop-shadow(0 0 3px rgba(255, 248, 220, 0.4)); font-size: 1.2em;">•</span>
+                Letters and notes can be added once their profile is created.
+            </li>
+            <li style="padding-left: 25px; position: relative;">
+                <span style="position: absolute; left: 0; color: var(--pale-gold); filter: drop-shadow(0 0 3px rgba(255, 248, 220, 0.4)); font-size: 1.2em;">•</span>
+                All information is saved locally in your browser's storage.
+            </li>
+        </ul>
     </div>
 {% endblock %}
