@@ -168,7 +168,7 @@ class LetterManager:
         return False
 
     def delete_letter(self, penpal_name, letter_index):
-    if not self.use_postgres:
+        if not self.use_postgres:
         return self.delete_letter_file(penpal_name, letter_index)
     
     def add_note(self, penpal_name, note):
