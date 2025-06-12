@@ -291,6 +291,7 @@ class LetterManager:
                 })
             
             return {
+                "name": penpal_name,
                 "country": country,
                 "letters": letters,
                 "notes": notes,
