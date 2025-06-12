@@ -127,6 +127,13 @@ def extract_info_from_letter(letter_content, penpal_name):
         print(f"Gemini API error: {e}")
         return []
 
+@app.route('/delete_letter', methods=['POST'])
+def delete_letter():
+    penpal_name = request.form['penpal_name']
+    letter_index = int(request.form['letter_index'])
+    letter_manager.delete_letter(penpal_name, letter_index)
+    return redirect(url_for('penpal_details', penpal_name=penpal_name))
+
 @app.route('/add_note', methods=['POST'])
 def add_note():
     penpal_name = request.form['penpal_name']
