@@ -92,7 +92,7 @@ def extract_info_from_letter(letter_content, penpal_name):
     
     If there's no significant new personal information to extract, respond with "No new information to extract."
 
-    Format your response as a simple list, one item per line, without bullet points or numbers.
+    Format your response as a simple list, one item per line. CRITICALLY IMPORTANT: DO NOT use any bullet points, hyphens, numbers, or any other prefixes before each item.
     """
     
     try:
