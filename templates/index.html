@@ -23,7 +23,7 @@
     <div class="actions">
         <a href="{{ url_for('add_penpal') }}" class="btn">Add New Pen Pal</a>
         <div style="flex: 1; min-width: 300px;">
-            <input type="text" class="search-box" placeholder="Search through your letters..." onkeyup="searchLetters(this.value)">
+            <input type="text" class="search-box" placeholder="Search through your letters..." onkeyup="if (event.key === 'Enter') searchLetters(this.value);">
         </div>
     </div>
 
@@ -34,11 +34,11 @@
                     <div class="penpal-name">{{ penpal.name }}</div>
                     <div class="penpal-country">{{ penpal.country }}</div>
                     <div class="penpal-stats">
-                        <span class="stat">{{ penpal.letter_count }} letters</span>
-                        <span class="stat">{{ penpal.note_count }} notes</span>
+                        <span class="stat">{{ penpal.letter_count }} letter{{'s' if penpal.letter_count != 1 else ''}}</span>
+                        <span class="stat">{{ penpal.note_count }} note{{'s' if penpal.note_count != 1 else ''}}</span>
                     </div>
                     {% if penpal.last_letter %}
-                        <div style="font-size: 0.85rem; color: #aaa; margin-top: 12px; font-weight: 300;">
+                        <div style="font-size: 0.85rem; color: rgba(100, 116, 139, 0.75); margin-top: 15px; font-weight: 300; position: relative; z-index: 1;">
                             Last letter: {{ penpal.last_letter[:10] }}
                         </div>
                     {% endif %}
@@ -47,11 +47,12 @@
         </div>
     {% else %}
         <div class="card">
-            <div class="no-data">
-                <h3>Welcome to your letter sanctuary</h3>
-                <p>Begin by adding your first pen pal to organize your cherished correspondence.</p>
-                <br>
-                <a href="{{ url_for('add_penpal') }}" class="btn">Add Your First Pen Pal</a>
+            <div class="no-data" style="padding: 40px 20px;">
+                <h3 style="font-family: 'Cormorant Garamond', serif; font-weight: 400; color: rgba(71, 85, 105, 0.9); font-size: 1.6rem; margin-bottom: 15px;">Welcome to Your Letter Sanctuary</h3>
+                <p style="color: rgba(100, 116, 139, 0.8); line-height: 1.6; font-size: 1.05rem; margin-bottom: 30px;">
+                    Begin by adding your first pen pal to organize your cherished correspondence.
+                </p>
+                <a href="{{ url_for('add_penpal') }}" class="btn btn-secondary">Add Your First Pen Pal</a>
             </div>
         </div>
     {% endif %}
