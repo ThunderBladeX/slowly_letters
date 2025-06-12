@@ -81,6 +81,11 @@
                         {% endif %}
                     </div>
                     <div class="letter-content">{{ letter.content }}</div>
+                    <form method="POST" action="{{ url_for('delete_letter') }}" style="display: inline; margin-left: 15px;">
+                        <input type="hidden" name="penpal_name" value="{{ penpal.name }}">
+                        <input type="hidden" name="letter_index" value="{{ loop.index0 }}">
+                        <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this letter? This action cannot be undone.')">Delete Letter</button>
+                    </form>
                 </div>
             {% endfor %}
         {% else %}
