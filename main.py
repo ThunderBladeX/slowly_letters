@@ -43,6 +43,9 @@ def add_letter():
     content = request.form['content']
     date_received = request.form['date_received']
     auto_extract = request.form.get('auto_extract') == 'on'
+
+    print(f"Submitted penpal_name: '{penpal_name}'")
+    print(f"Existing penpals: {[p['name'] for p in letter_manager.get_all_penpals()]}")
     
     success = letter_manager.add_letter(penpal_name, content, date_received)
     if not success:
