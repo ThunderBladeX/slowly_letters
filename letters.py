@@ -1,6 +1,13 @@
 import json
 from datetime import datetime
-from vercel_kv import KV
+import os
+
+try:
+    from vercel_kv import kv
+    KV_AVAILABLE = True
+except ImportError:
+    KV_AVAILABLE = False
+    print("Vercel KV not available - using local file storage")
 
 class LetterManager:
     def __init__(self, kv_key='letters_data_store'):
