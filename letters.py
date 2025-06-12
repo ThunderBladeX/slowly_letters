@@ -168,8 +168,38 @@ class LetterManager:
         return False
 
     def delete_letter(self, penpal_name, letter_index):
-        if not self.use_postgres:
-            return self.delete_letter_file(penpal_name, letter_index)
+    if not self.use_postgres:
+        return self.delete_letter_file(penpal_name, letter_index)
+    conn = self.get_connection()
+    if not conn:
+        return False
+    try:
+        cur = conn.cursor()
+        # Get penpal ID
+        cur.execute("SELECT id FROM penpals WHERE name = %s", (penpal_name,))
+        result = cur.fetchone()
+        if not result:
+            return False
+        penpal_id = result[0]
+        # Get letters ordered by date_received to match the index
+        cur.execute(
+            "SELECT id FROM letters WHERE penpal_id = %s ORDER BY date_received",
+            (penpal_id,)
+        )
+        letters = cur.fetchall()
+        if 0 <= letter_index < len(letters):
+            letter_id = letters[letter_index][0]
+            cur.execute("DELETE FROM letters WHERE id = %s", (letter_id,))
+            conn.commit()
+            return True
+        return False
+    except Exception as e:
+        print(f"Error deleting letter: {e}")
+        conn.rollback()
+        return False
+    finally:
+        cur.close()
+        conn.close()
     
     def add_note(self, penpal_name, note):
         """Add a note about a penpal"""
