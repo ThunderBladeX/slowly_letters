@@ -131,7 +131,10 @@ def extract_info_from_letter(letter_content, penpal_name):
 def delete_letter():
     penpal_name = request.form['penpal_name']
     letter_index = int(request.form['letter_index'])
-    letter_manager.delete_letter(penpal_name, letter_index)
+    success = letter_manager.delete_letter(penpal_name, letter_index)
+    if not success:
+        # Add flash message or error handling
+        flash("Failed to delete letter. Please try again.")
     return redirect(url_for('penpal_details', penpal_name=penpal_name))
 
 @app.route('/add_note', methods=['POST'])
