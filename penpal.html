@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}{{ penpal.name }} - Slowly Letters Organizer{% endblock %}
+
+{% block content %}
+    <a href="{{ url_for('index') }}" class="back-link">← Return to all pen pals</a>
+    
+    <div class="card">
+        <h2>{{ penpal.name }} from {{ penpal.country }}</h2>
+        <div style="display: flex; gap: 30px; margin-top: 20px; color: #8a8a8a; font-weight: 300;">
+            <span>{{ penpal.letters|length }} letters</span>
+            <span>{{ penpal.notes|length }} notes</span>
+            <span>Since {{ penpal.created_date[:10] if penpal.created_date else 'Unknown' }}</span>
+        </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="notes-section">
+        <h3 style="margin-bottom: 15px; color: #5a5a5a; font-weight: 400;">Notes about {{ penpal.name }}</h3>
+        <p style="color: #8a8a8a; margin-bottom: 20px; font-size: 0.95rem; font-weight: 300;">
+            Keep track of the little details that make your friendship special
+        </p>
+        
+        {% if penpal.notes %}
+            {% for note in penpal.notes %}
+                <div class="note">
+                    <div class="note-content">
+                        {{ note.note }}
+                        <div class="note-date">{{ note.date_added[:10] if note.date_added else 'Unknown' }}</div>
+                    </div>
+                    <form method="POST" action="{{ url_for('delete_note') }}" style="display: inline;">
+                        <input type="hidden" name="penpal_name" value="{{ penpal.name }}">
+                        <input type="hidden" name="note_index" value="{{ loop.index0 }}">
+                        <button type="submit" class="delete-btn" onclick="return confirm('Remove this note?')">Remove</button>
+                    </form>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; color: #aaa; font-style: italic; padding: 30px; font-weight: 300;">
+                No notes yet. Begin with your first note below.
+            </div>
+        {% endif %}
+        
+        <!-- Add Note Form -->
+        <form method="POST" action="{{ url_for('add_note') }}" style="margin-top: 20px;">
+            <input type="hidden" name="penpal_name" value="{{ penpal.name }}">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <input type="text" name="note" placeholder="Something you'd like to remember about {{ penpal.name }}..." required style="width: 100%;">
+            </div>
+            <button type="submit" class="btn btn-secondary">Add Note</button>
+        </form>
+    </div>
+
+    <!-- Letters Section -->
+    <div class="card">
+        <h3 style="margin-bottom: 15px; color: #5a5a5a; font-weight: 400;">Letters</h3>
+        {% if penpal.letters %}
+            <p style="color: #8a8a8a; margin-bottom: 25px; font-weight: 300;">
+                {{ penpal.letters|length }} letter{{ 's' if penpal.letters|length != 1 else '' }} received
+            </p>
+            
+            {% for letter in penpal.letters|reverse %}
+                <div class="letter">
+                    <div class="letter-date">
+                        {{ letter.date_received[:10] if letter.date_received else 'Unknown date' }}
+                        {% if letter.date_added %}
+                            <span style="margin-left: 20px; color: #bbb; font-size: 0.85rem;">
+                                Added {{ letter.date_added[:10] }}
+                            </span>
+                        {% endif %}
+                        {% if gemini_available %}
+                            <form method="POST" action="{{ url_for('extract_from_letter') }}" style="display: inline; margin-left: 20px;">
+                                <input type="hidden" name="penpal_name" value="{{ penpal.name }}">
+                                <input type="hidden" name="letter_content" value="{{ letter.content }}">
+                                <button type="submit" class="btn btn-secondary" style="font-size: 0.75rem; padding: 6px 12px;" title="Extract insights from this letter">
+                                    Extract
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <div class="letter-content">{{ letter.content }}</div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-data">
+                <h4>No letters yet</h4>
+                <p>Add your first letter from {{ penpal.name }} below.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Add Letter Form -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #5a5a5a; font-weight: 400;">Add New Letter</h3>
+        <form method="POST" action="{{ url_for('add_letter') }}">
+            <input type="hidden" name="penpal_name" value="{{ penpal.name }}">
+            
+            <div class="form-group">
+                <label for="date_received">Date Received:</label>
+                <input type="date" name="date_received" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="content">Letter Content:</label>
+                <textarea name="content" placeholder="Share the words that traveled across the world to reach you..." required></textarea>
+            </div>
+            
+            <!-- AI Auto-Extract Option -->
+            <div class="form-group">
+                <div style="display: flex; align-items: center; gap: 15px; background: linear-gradient(135deg, rgba(255, 248, 220, 0.6) 0%, rgba(255, 255, 255, 0.5) 100%); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.2);">
+                    <input type="checkbox" id="auto_extract" name="auto_extract" checked>
+                    <label for="auto_extract" style="margin: 0; cursor: pointer; flex: 1; font-weight: 300;">
+                        <strong style="color: #5a5a5a;">AI Auto-Extract Notes</strong>
+                        <div style="font-size: 0.9rem; color: #8a8a8a; margin-top: 5px;">
+                            Automatically discover key details about {{ penpal.name }} from this letter
+                        </div>
+                    </label>
+                </div>
+                {% if not gemini_available %}
+                    <div style="font-size: 0.85rem; color: #cc6666; margin-top: 8px; font-weight: 300;">
+                        AI extraction unavailable. Configure GEMINI_API_KEY to enable this feature.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="btn">Save Letter</button>
+        </form>
+    </div>
+
+    <script>
+        // Set today's date as default for new letters
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.querySelector('input[name="date_received"]');
+            if (dateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+            }
+        });
+
+        // Auto-expand textarea as user types
+        document.querySelector('textarea[name="content"]').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.max(140, this.scrollHeight) + 'px';
+        });
+    </script>
+{% endblock %}
