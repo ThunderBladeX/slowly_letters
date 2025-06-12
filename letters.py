@@ -6,52 +6,76 @@ import os
 kv = None
 
 # Try different methods to import Vercel KV
-try:
-    # Method 1: Direct import
-    from vercel_kv import kv
-except ImportError:
+def setup_kv():
+    global kv
+    
+    # Check if we're in production environment
+    if not os.getenv('KV_REST_API_URL') or not os.getenv('KV_REST_API_TOKEN'):
+        print("KV environment variables not found, using file storage")
+        return None
+    
     try:
-        # Method 2: Import module then get kv
+        # Method 1: Try the standard import
+        from vercel_kv import kv as vercel_kv_instance
+        print("Successfully imported vercel_kv")
+        return vercel_kv_instance
+    except ImportError as e:
+        print(f"Method 1 failed: {e}")
+        
+    try:
+        # Method 2: Try importing the module and accessing kv
         import vercel_kv
-        kv = vercel_kv.kv
-    except ImportError:
-        try:
-            # Method 3: Use sync KV class
-            from vercel_kv.sync import KV
-            kv_url = os.getenv('KV_REST_API_URL')
-            kv_token = os.getenv('KV_REST_API_TOKEN')
-            if kv_url and kv_token:
-                kv = KV(url=kv_url, token=kv_token)
-        except ImportError:
-            try:
-                # Method 4: Alternative import pattern
-                import vercel_kv.kv as kv_module
-                kv = kv_module
-            except ImportError:
-                print("Warning: Vercel KV not available, using fallback storage")
-                kv = None
+        print("Successfully imported vercel_kv module")
+        return getattr(vercel_kv, 'kv', None)
+    except ImportError as e:
+        print(f"Method 2 failed: {e}")
+        
+    try:
+        # Method 3: Try the sync KV class
+        from vercel_kv.sync import KV
+        kv_url = os.getenv('KV_REST_API_URL')
+        kv_token = os.getenv('KV_REST_API_TOKEN')
+        if kv_url and kv_token:
+            print("Using sync KV class")
+            return KV(url=kv_url, token=kv_token)
+    except ImportError as e:
+        print(f"Method 3 failed: {e}")
+    except Exception as e:
+        print(f"KV setup error: {e}")
+    
+    print("All KV import methods failed, falling back to file storage")
+    return None
+
+# Initialize KV
+kv = setup_kv()
 
 class LetterManager:
     def __init__(self, kv_key='letters_data_store'):
         self.kv_key = kv_key
+        self.use_kv = kv is not None
         self.data = self.load_data()
+        print(f"LetterManager initialized with {'KV' if self.use_kv else 'file'} storage")
     
     def load_data(self):
         """Load data from Vercel KV or create empty structure"""
-        if not kv:
+        if not self.use_kv:
             return self.load_from_file()
         
         try:
             raw_data = kv.get(self.kv_key)
             if raw_data:
                 try:
-                    return json.loads(raw_data) if isinstance(raw_data, str) else raw_data
-                except (json.JSONDecodeError, TypeError):
-                    print("Warning: Invalid JSON in KV store, using empty structure")
+                    data = json.loads(raw_data) if isinstance(raw_data, str) else raw_data
+                    print("Successfully loaded data from KV")
+                    return data
+                except (json.JSONDecodeError, TypeError) as e:
+                    print(f"Warning: Invalid JSON in KV store: {e}, using empty structure")
                     return {"penpals": {}}
-            return {"penpals": {}}
+            else:
+                print("No data found in KV, starting with empty structure")
+                return {"penpals": {}}
         except Exception as e:
-            print(f"Error loading from KV: {e}")
+            print(f"Error loading from KV: {e}, falling back to file")
             return self.load_from_file()
 
     def load_from_file(self):
@@ -59,31 +83,41 @@ class LetterManager:
         try:
             if os.path.exists('letters_data.json'):
                 with open('letters_data.json', 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    print("Successfully loaded data from file")
+                    return data
+            else:
+                print("No data file found, starting with empty structure")
         except Exception as e:
             print(f"Error loading from file: {e}")
         return {"penpals": {}}
     
     def save_data(self):
         """Save data to Vercel KV or file"""
-        if kv:
+        success = False
+        
+        if self.use_kv:
             try:
                 # Ensure data is JSON serializable
-                json_data = json.dumps(self.data) if not isinstance(self.data, str) else self.data
-                kv.set(self.kv_key, json_data)
-                return True
+                json_data = json.dumps(self.data, ensure_ascii=False, indent=None)
+                result = kv.set(self.kv_key, json_data)
+                print("Successfully saved data to KV")
+                success = True
             except Exception as e:
-                print(f"Error saving to KV: {e}")
+                print(f"Error saving to KV: {e}, falling back to file")
                 # Fall through to file save
         
-        # Fallback to file storage
-        try:
-            with open('letters_data.json', 'w', encoding='utf-8') as f:
-                json.dump(self.data, f, indent=2, ensure_ascii=False)
-            return True
-        except Exception as e:
-            print(f"Error saving to file: {e}")
-            return False
+        if not success:
+            # Fallback to file storage
+            try:
+                with open('letters_data.json', 'w', encoding='utf-8') as f:
+                    json.dump(self.data, f, indent=2, ensure_ascii=False)
+                print("Successfully saved data to file")
+                success = True
+            except Exception as e:
+                print(f"Error saving to file: {e}")
+        
+        return success
     
     def add_penpal(self, name, country):
         """Add a new penpal"""
