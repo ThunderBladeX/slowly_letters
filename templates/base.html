@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Slowly Letters Organizer{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-    </style>
+    <link rel="stylesheet" href="style.css"> {/* Add this line */}
 </head>
 <body>
     <div class="container">
@@ -49,7 +48,7 @@
         window.addEventListener('scroll', () => {
             const scrolled = window.pageYOffset;
             const rate = scrolled * -0.5;
-            document.body.style.transform = `translateY(${rate}px)`;
+            document.body.style.backgroundPositionY = `${rate}px`;
         });
     </script>
 </body>
