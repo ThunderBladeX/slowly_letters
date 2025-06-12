@@ -21,7 +21,7 @@ def index():
     penpals = letter_manager.get_all_penpals()
     return render_template('index.html', penpals=penpals, letter_manager=letter_manager)
 
-@app.route('/penpal/<penpal_name>')
+@app.route('/penpal/<path:penpal_name>')
 def penpal_details(penpal_name):
     penpal = letter_manager.get_penpal(penpal_name)
     if not penpal:
@@ -43,6 +43,11 @@ def add_letter():
     content = request.form['content']
     date_received = request.form['date_received']
     auto_extract = request.form.get('auto_extract') == 'on'
+    
+    success = letter_manager.add_letter(penpal_name, content, date_received)
+    if not success:
+        # flash a message, or render a template with an error
+        return "Penpal not found or error adding letter.", 400
     
     # Add the letter first
     letter_manager.add_letter(penpal_name, content, date_received)
