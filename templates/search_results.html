@@ -3,27 +3,30 @@
 {% block title %}Search Results - Slowly Letters Organizer{% endblock %}
 
 {% block content %}
-    <a href="{{ url_for('index') }}" class="back-link">← Return to all pen pals</a>
+    <a href="{{ url_for('index') }}" class="back-link" style="font-size: 1rem;">← Return to all pen pals</a>
     
     <div class="card">
-        <h2 style="margin-bottom: 15px; color: #5a5a5a; font-weight: 400;">Search Results</h2>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 400; color: rgba(71, 85, 105, 0.95); margin-bottom: 10px;">Search Your Letters</h2>
         {% if query %}
-            <p style="color: #8a8a8a; margin-bottom: 25px; font-weight: 300;">
-                Found in letters containing "<strong style="color: #5a5a5a;">{{ query }}</strong>"
+            <p style="color: rgba(100, 116, 139, 0.8); margin-bottom: 25px; font-weight: 300; font-size: 1.05rem;">
+                Showing results for letters containing "<strong style="color: rgba(71, 85, 105, 0.9); font-weight: 500;">{{ query }}</strong>".
+            </p>
+        {% else %}
+            <p style="color: rgba(100, 116, 139, 0.8); margin-bottom: 25px; font-weight: 300; font-size: 1.05rem;">
+                Enter a keyword or phrase to find specific letters.
             </p>
         {% endif %}
         
-        <!-- Search Box -->
-        <div class="form-group">
-            <input type="text" class="search-box" placeholder="Search through your letters..." 
-                   value="{{ query }}" onkeyup="searchLetters(this.value)">
+        <div class="form-group" style="margin-bottom: 0;">
+            <input type="text" class="search-box" placeholder="Search again..." 
+                   value="{{ query }}" onkeyup="if (event.key === 'Enter') searchLetters(this.value);" style="margin-bottom: 0;">
         </div>
     </div>
 
     {% if results %}
-        <div style="margin-bottom: 25px;">
-            <div class="stat-card" style="display: inline-block; margin-right: 20px;">
-                <span class="stat-number">{{ results|length }}</span>
+        <div style="margin-bottom: 30px; margin-top: -10px;">
+            <div class="stat-card" style="display: inline-block; padding: 20px 30px; border-radius: 16px;">
+                <span class="stat-number" style="font-size: 2.2rem;">{{ results|length }}</span>
                 <span class="stat-label">Result{{ 's' if results|length != 1 else '' }} Found</span>
             </div>
         </div>
@@ -33,18 +36,18 @@
                 <div class="search-result-header">
                     <div>
                         <span class="search-result-penpal">{{ result.penpal_name }}</span>
-                        <span class="search-result-country">from {{ result.country }}</span>
+                        <span class="search-result-country" style="margin-left: 8px;">from {{ result.country }}</span>
                     </div>
                     <div class="search-result-date">
                         {{ result.letter.date_received[:10] if result.letter.date_received else 'Unknown date' }}
                     </div>
                 </div>
                 <div class="search-result-preview">
-                    {{ result.preview }}
+                    {{ result.preview|safe }}
                 </div>
-                <div style="margin-top: 15px;">
-                    <a href="{{ url_for('penpal_details', penpal_name=result.penpal_name) }}" class="btn btn-secondary" style="font-size: 0.9rem; padding: 10px 18px;">
-                        View {{ result.penpal_name }}'s Letters
+                <div style="margin-top: 20px;">
+                    <a href="{{ url_for('penpal_details', penpal_name=result.penpal_name) }}" class="btn btn-secondary" style="font-size: 0.9rem; padding: 10px 20px;">
+                        View All Letters from {{ result.penpal_name }}
                     </a>
                 </div>
             </div>
@@ -52,62 +55,47 @@
     {% else %}
         {% if query %}
             <div class="card">
-                <div class="no-data">
-                    <h3>No results found</h3>
-                    <p>Your letters don't contain the text "{{ query }}"</p>
-                    <br>
-                    <div style="color: #8a8a8a; font-size: 0.95rem; font-weight: 300; text-align: left; max-width: 400px; margin: 0 auto;">
-                        <p style="margin-bottom: 10px;">Try searching for:</p>
-                        <p style="margin-bottom: 8px;">• Different keywords or phrases</p>
-                        <p style="margin-bottom: 8px;">• Parts of words (like "happ" instead of "happy")</p>
-                        <p>• Topics or subjects mentioned in letters</p>
+                <div class="no-data" style="padding: 40px 20px;">
+                    <h3 style="font-family: 'Cormorant Garamond', serif; font-weight: 400; color: rgba(71, 85, 105, 0.9); font-size: 1.6rem; margin-bottom: 10px;">No Results Found</h3>
+                    <p style="color: rgba(100, 116, 139, 0.8); line-height: 1.6; font-size: 1.05rem; margin-bottom: 25px;">
+                        No letters match your search for "{{ query }}".
+                    </p>
+                    <div style="color: rgba(100, 116, 139, 0.8); font-size: 0.95rem; font-weight: 300; text-align: left; max-width: 450px; margin: 0 auto; background-color: var(--marble-grey); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3);">
+                        <p style="margin-bottom: 10px; font-weight: 400; color: rgba(71, 85, 105, 0.85);">Search suggestions:</p>
+                        <ul style="list-style-position: inside; padding-left: 0; text-align: left;">
+                            <li style="margin-bottom: 8px;">Try different keywords or phrases.</li>
+                            <li style="margin-bottom: 8px;">Use parts of words (e.g., "happ" for "happy").</li>
+                            <li>Search for topics or subjects mentioned in letters.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         {% else %}
-            <div class="card">
-                <div class="no-data">
-                    <h3>Begin Your Search</h3>
-                    <p>Enter words or phrases above to discover letters containing specific content.</p>
-                </div>
-            </div>
+             <!-- This state is covered by the initial search prompt card -->
         {% endif %}
     {% endif %}
 
     <script>
-        // Highlight search terms in results
         document.addEventListener('DOMContentLoaded', function() {
-            const query = '{{ query }}';
+            const query = decodeURIComponent("{{ query|e }}");
             if (query) {
                 const previews = document.querySelectorAll('.search-result-preview');
                 previews.forEach(preview => {
-                    const regex = new RegExp(`(${query})`, 'gi');
-                    preview.innerHTML = preview.innerHTML.replace(regex, '<mark style="background: rgba(255, 215, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #5a5a5a;">$1</mark>');
+                    // Escape special characters in query for regex
+                    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+                    preview.innerHTML = preview.innerHTML.replace(regex, '<mark style="background: rgba(255, 248, 220, 0.5); padding: 1px 4px; border-radius: 3px; color: rgba(71, 85, 105, 0.9);">$&</mark>');
                 });
             }
         });
 
-        // Enhanced search function with enter key support
         function searchLetters(query) {
-            if (query.length > 0) {
-                const currentUrl = new URL(window.location);
-                currentUrl.searchParams.set('q', query);
-                window.history.pushState({}, '', currentUrl);
-            }
-            
-            if (query.length > 2) {
-                window.location.href = '/search?q=' + encodeURIComponent(query);
+            const trimmedQuery = query.trim();
+            if (trimmedQuery.length > 0) { // Allow search for any length if Enter is pressed
+                window.location.href = '/search?q=' + encodeURIComponent(trimmedQuery);
+            } else if (trimmedQuery.length === 0 && "{{query}}") { // If search box cleared and there was a previous query, reload without query
+                 window.location.href = '/search';
             }
         }
-
-        // Handle enter key in search box
-        document.querySelector('.search-box').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const query = this.value.trim();
-                if (query.length > 0) {
-                    window.location.href = '/search?q=' + encodeURIComponent(query);
-                }
-            }
-        });
     </script>
 {% endblock %}
