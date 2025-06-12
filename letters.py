@@ -5,119 +5,101 @@ import os
 # Initialize KV as None first
 kv = None
 
-# Try different methods to import Vercel KV
-def setup_kv():
-    global kv
-    
-    # Check if we're in production environment
-    if not os.getenv('KV_REST_API_URL') or not os.getenv('KV_REST_API_TOKEN'):
-        print("KV environment variables not found, using file storage")
-        return None
-    
-    try:
-        # Method 1: Try the standard import
-        from vercel_kv import kv as vercel_kv_instance
-        print("Successfully imported vercel_kv")
-        return vercel_kv_instance
-    except ImportError as e:
-        print(f"Method 1 failed: {e}")
-        
-    try:
-        # Method 2: Try importing the module and accessing kv
-        import vercel_kv
-        print("Successfully imported vercel_kv module")
-        return getattr(vercel_kv, 'kv', None)
-    except ImportError as e:
-        print(f"Method 2 failed: {e}")
-        
-    try:
-        # Method 3: Try the sync KV class
-        from vercel_kv.sync import KV
-        kv_url = os.getenv('KV_REST_API_URL')
-        kv_token = os.getenv('KV_REST_API_TOKEN')
-        if kv_url and kv_token:
-            print("Using sync KV class")
-            return KV(url=kv_url, token=kv_token)
-    except ImportError as e:
-        print(f"Method 3 failed: {e}")
-    except Exception as e:
-        print(f"KV setup error: {e}")
-    
-    print("All KV import methods failed, falling back to file storage")
-    return None
+# Get Vercel KV credentials from environment variables
+kv_url = os.getenv('KV_REST_API_URL')
+kv_token = os.getenv('KV_REST_API_TOKEN')
 
-# Initialize KV
-kv = setup_kv()
+if kv_url and kv_token:
+    try:
+        # Attempt 1: Standard synchronous client (most appropriate for Flask)
+        from vercel_kv.sync import KV
+        kv = KV(url=kv_url, token=kv_token)
+        print("Successfully initialized Vercel KV using vercel_kv.sync.KV")
+    except (ImportError, AttributeError, Exception) as e_sync:
+        print(f"Failed to initialize Vercel KV with vercel_kv.sync.KV: {e_sync}")
+        print("Attempting fallback: from vercel_kv import KV")
+        try:
+            # Attempt 2: Base KV class (could be async, or from a simplified/local vercel_kv.py)
+            # The error message "Did you mean: 'KV'?" suggests this might be available.
+            from vercel_kv import KV as VercelKV # Use an alias to avoid potential name conflicts
+            kv = VercelKV(url=kv_url, token=kv_token)
+            print("Successfully initialized Vercel KV using vercel_kv.KV.")
+            # Add a warning if this client might be async and the code expects sync
+            # For now, assume it's usable if found.
+        except (ImportError, AttributeError, Exception) as e_base:
+            print(f"Failed to initialize Vercel KV with vercel_kv.KV: {e_base}")
+            kv = None # Ensure kv is None if all attempts fail
+else:
+    print("Warning: Vercel KV environment variables (KV_REST_API_URL, KV_REST_API_TOKEN) are not set.")
+    # kv is already None if initialized as such at the top, but being explicit is fine.
+    kv = None 
+
+if kv is None:
+    print("Warning: Vercel KV not available, using fallback storage.")
+
 
 class LetterManager:
     def __init__(self, kv_key='letters_data_store'):
         self.kv_key = kv_key
-        self.use_kv = kv is not None
+        # Ensure data is loaded after kv is potentially initialized
         self.data = self.load_data()
-        print(f"LetterManager initialized with {'KV' if self.use_kv else 'file'} storage")
     
     def load_data(self):
         """Load data from Vercel KV or create empty structure"""
-        if not self.use_kv:
+        if not kv: # Check if kv was successfully initialized
+            print("KV client not available, loading from file.")
             return self.load_from_file()
         
         try:
             raw_data = kv.get(self.kv_key)
             if raw_data:
                 try:
-                    data = json.loads(raw_data) if isinstance(raw_data, str) else raw_data
-                    print("Successfully loaded data from KV")
-                    return data
+                    # Vercel KV often stores JSON as strings
+                    return json.loads(raw_data) if isinstance(raw_data, str) else raw_data
                 except (json.JSONDecodeError, TypeError) as e:
-                    print(f"Warning: Invalid JSON in KV store: {e}, using empty structure")
+                    print(f"Warning: Invalid JSON in KV store ('{self.kv_key}'). Error: {e}. Raw data: '{raw_data}'. Using empty structure.")
                     return {"penpals": {}}
-            else:
-                print("No data found in KV, starting with empty structure")
-                return {"penpals": {}}
+            return {"penpals": {}} # No data found or raw_data is None/empty
         except Exception as e:
-            print(f"Error loading from KV: {e}, falling back to file")
+            print(f"Error loading from KV ('{self.kv_key}'): {e}. Falling back to file.")
             return self.load_from_file()
 
     def load_from_file(self):
         """Fallback file-based storage"""
+        file_path = 'letters_data.json'
         try:
-            if os.path.exists('letters_data.json'):
-                with open('letters_data.json', 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    print("Successfully loaded data from file")
-                    return data
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
             else:
-                print("No data file found, starting with empty structure")
+                print(f"Fallback file '{file_path}' not found. Starting with empty data.")
         except Exception as e:
-            print(f"Error loading from file: {e}")
+            print(f"Error loading from file '{file_path}': {e}")
         return {"penpals": {}}
     
     def save_data(self):
         """Save data to Vercel KV or file"""
-        success = False
-        
-        if self.use_kv:
+        if kv: # Check if kv was successfully initialized
             try:
-                # Ensure data is JSON serializable
-                json_data = json.dumps(self.data, ensure_ascii=False, indent=None)
-                result = kv.set(self.kv_key, json_data)
-                print("Successfully saved data to KV")
-                success = True
+                # Ensure data is JSON serializable string
+                json_data = json.dumps(self.data)
+                kv.set(self.kv_key, json_data)
+                print(f"Data saved to Vercel KV key '{self.kv_key}'.")
+                return True
             except Exception as e:
-                print(f"Error saving to KV: {e}, falling back to file")
-                # Fall through to file save
+                print(f"Error saving to KV ('{self.kv_key}'): {e}. Attempting file save.")
+                # Fall through to file save if KV save fails
         
-        if not success:
-            # Fallback to file storage
-            try:
-                with open('letters_data.json', 'w', encoding='utf-8') as f:
-                    json.dump(self.data, f, indent=2, ensure_ascii=False)
-                print("Successfully saved data to file")
-                success = True
-            except Exception as e:
-                print(f"Error saving to file: {e}")
-        
-        return success
+        # Fallback to file storage
+        file_path = 'letters_data.json'
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(self.data, f, indent=2, ensure_ascii=False)
+            print(f"Data saved to fallback file '{file_path}'.")
+            return True
+        except Exception as e:
+            print(f"Error saving to file '{file_path}': {e}")
+            return False
     
     def add_penpal(self, name, country):
         """Add a new penpal"""
