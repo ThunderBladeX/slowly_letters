@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from vercel_kv import kv
+from vercel_kv import KV
 
 class LetterManager:
     def __init__(self, kv_key='letters_data_store'):
