@@ -1,4 +1,4 @@
 Flask==2.3.3
 google-generativeai==0.3.2
 Werkzeug==2.3.7
-vercel-kv
+vercel-kv==0.3.0
