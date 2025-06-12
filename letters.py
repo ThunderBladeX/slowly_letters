@@ -158,6 +158,14 @@ class LetterManager:
         finally:
             cur.close()
             conn.close()
+            
+    def delete_letter_file(self, penpal_name, letter_index):
+        data = self.load_from_file()
+        if (penpal_name in data["penpals"] and 
+            0 <= letter_index < len(data["penpals"][penpal_name]["letters"])):
+            del data["penpals"][penpal_name]["letters"][letter_index]
+            return self.save_to_file(data)
+        return False
     
     def add_note(self, penpal_name, note):
         """Add a note about a penpal"""
