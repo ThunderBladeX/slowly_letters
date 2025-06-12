@@ -2,22 +2,34 @@ import json
 from datetime import datetime
 import os
 
+# Initialize KV as None first
+kv = None
+
+# Try different methods to import Vercel KV
 try:
+    # Method 1: Direct import
     from vercel_kv import kv
 except ImportError:
     try:
+        # Method 2: Import module then get kv
         import vercel_kv
         kv = vercel_kv.kv
     except ImportError:
         try:
+            # Method 3: Use sync KV class
             from vercel_kv.sync import KV
-            kv = KV(
-                url=os.getenv('KV_REST_API_URL'),
-                token=os.getenv('KV_REST_API_TOKEN')
-            )
+            kv_url = os.getenv('KV_REST_API_URL')
+            kv_token = os.getenv('KV_REST_API_TOKEN')
+            if kv_url and kv_token:
+                kv = KV(url=kv_url, token=kv_token)
         except ImportError:
-            print("Warning: Vercel KV not available, using fallback storage")
-            kv = None
+            try:
+                # Method 4: Alternative import pattern
+                import vercel_kv.kv as kv_module
+                kv = kv_module
+            except ImportError:
+                print("Warning: Vercel KV not available, using fallback storage")
+                kv = None
 
 class LetterManager:
     def __init__(self, kv_key='letters_data_store'):
@@ -28,12 +40,14 @@ class LetterManager:
         """Load data from Vercel KV or create empty structure"""
         if not kv:
             return self.load_from_file()
+        
         try:
             raw_data = kv.get(self.kv_key)
             if raw_data:
                 try:
                     return json.loads(raw_data) if isinstance(raw_data, str) else raw_data
-                except json.JSONDecodeError:
+                except (json.JSONDecodeError, TypeError):
+                    print("Warning: Invalid JSON in KV store, using empty structure")
                     return {"penpals": {}}
             return {"penpals": {}}
         except Exception as e:
@@ -44,7 +58,7 @@ class LetterManager:
         """Fallback file-based storage"""
         try:
             if os.path.exists('letters_data.json'):
-                with open('letters_data.json', 'r') as f:
+                with open('letters_data.json', 'r', encoding='utf-8') as f:
                     return json.load(f)
         except Exception as e:
             print(f"Error loading from file: {e}")
@@ -54,15 +68,22 @@ class LetterManager:
         """Save data to Vercel KV or file"""
         if kv:
             try:
-                kv.set(self.kv_key, self.data)
-                return
+                # Ensure data is JSON serializable
+                json_data = json.dumps(self.data) if not isinstance(self.data, str) else self.data
+                kv.set(self.kv_key, json_data)
+                return True
             except Exception as e:
                 print(f"Error saving to KV: {e}")
+                # Fall through to file save
+        
+        # Fallback to file storage
         try:
-            with open('letters_data.json', 'w') as f:
-                json.dump(self.data, f, indent=2)
+            with open('letters_data.json', 'w', encoding='utf-8') as f:
+                json.dump(self.data, f, indent=2, ensure_ascii=False)
+            return True
         except Exception as e:
             print(f"Error saving to file: {e}")
+            return False
     
     def add_penpal(self, name, country):
         """Add a new penpal"""
