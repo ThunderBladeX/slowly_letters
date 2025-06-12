@@ -166,6 +166,10 @@ class LetterManager:
             del data["penpals"][penpal_name]["letters"][letter_index]
             return self.save_to_file(data)
         return False
+
+    def delete_letter(self, penpal_name, letter_index):
+    if not self.use_postgres:
+        return self.delete_letter_file(penpal_name, letter_index)
     
     def add_note(self, penpal_name, note):
         """Add a note about a penpal"""
